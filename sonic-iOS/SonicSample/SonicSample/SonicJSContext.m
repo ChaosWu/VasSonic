@@ -24,18 +24,19 @@
 
 - (void)getDiffData:(NSDictionary *)option withCallBack:(JSValue *)jscallback
 {
-    JSValue *callback = self.owner.jscontext.globalObject;
+    SonicWebViewController *owner = self.owner;
+    if (!owner) { return; }
     
-    [[SonicEngine sharedEngine] sonicUpdateDiffDataByWebDelegate:self.owner completion:^(NSDictionary *result) {
-       
-        if (result) {
-            
+    __weak typeof(SonicWebViewController *) weakOwner = owner;
+    [[SonicEngine sharedEngine] sonicUpdateDiffDataByWebDelegate:owner completion:^(NSDictionary *result) {
+        __strong typeof(SonicWebViewController *) strongOwner = weakOwner;
+        if (strongOwner && result) {
+            JSValue *callback = strongOwner.jscontext.globalObject;
             NSData *json = [NSJSONSerialization dataWithJSONObject:result options:NSJSONWritingPrettyPrinted error:nil];
             NSString *jsonStr = [[NSString alloc]initWithData:json encoding:NSUTF8StringEncoding];
             
             [callback invokeMethod:@"getDiffDataCallback" withArguments:@[jsonStr]];
         }
-        
     }];
 }
 
